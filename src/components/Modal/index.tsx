@@ -32,11 +32,15 @@ export const Modal: React.FC<ModalProps> = ({ children, title, isOpen, ...props 
 		if (e.key === 'Escape') props.onClose?.('esc', e.target);
 	}
 
+	function stopPropagation(e: React.MouseEvent) {
+		e.stopPropagation();
+	}
+
 	if (!isOpen) return null;
 
 	return (
 		<div data-modal-wrapper className={styles.wrapper} onClick={handleCloseClick} onKeyDown={handleKeyDown}>
-			<div data-modal-container>
+			<div data-modal-container onClick={stopPropagation}>
 				<header data-modal-header>
 					<h2>{title}</h2>
 
