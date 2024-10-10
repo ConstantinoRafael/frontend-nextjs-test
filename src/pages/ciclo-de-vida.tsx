@@ -15,63 +15,75 @@
  * 		no nextjs, você deve resolver este problema.
  */
 
-import { GetServerSideProps } from 'next/types';
-
-import styles from '@/styles/ciclo-de-vida.module.css';
-import { Counter } from '@/components/Counter';
-import { useEffect, useState } from 'react';
+import { GetServerSideProps } from "next/types";
+import styles from "@/styles/ciclo-de-vida.module.css";
+import { Counter } from "@/components/Counter";
+import { useEffect, useState } from "react";
 
 type CicloDeVidaProps = {
-	initialCount: number;
+  initialCount: number;
 };
 
 export default function CicloDeVida({ initialCount }: CicloDeVidaProps) {
-	const [showCounter, setShowCounter] = useState(false);
-	const [count, setCount] = useState(0);
+  const [showCounter, setShowCounter] = useState(false);
 
-	function handleOcultCounterClick() {
-		setShowCounter((prevState) => !prevState);
-	}
+  const handleOcultCounterClick = () => {
+    setShowCounter((prevState) => !prevState);
+  };
 
-	useEffect(() => {
-		window.addEventListener('onCounterMount', (event: CustomEventInit) => {
-			console.log('onCounterMount');
-		});
+  const handleCounterComplete = () => {
+    setShowCounter(false);
+  };
 
-		window.addEventListener('onCounterUnmount', (event: CustomEventInit) => {
-			console.log('onCounterUnmount');
-		});
+  useEffect(() => {
+    const onCounterUpdate = (e: CustomEvent) => {
+      if (e.detail >= 10) {
+        handleCounterComplete();
+      }
+    };
 
-		window.addEventListener('onCounterUpdate', (event: CustomEventInit) => {
-			console.log('onCounterUpdate');
-		});
-	}, []);
+    window.addEventListener(
+      "onCounterUpdate",
+      onCounterUpdate as EventListener
+    );
 
-	return (
-		<div className={styles.container}>
-			<div>
-				<button type="button" onClick={handleOcultCounterClick}>
-					{showCounter ? 'Ocultar contador' : 'Mostrar contador'}
-				</button>
+    return () => {
+      window.removeEventListener(
+        "onCounterUpdate",
+        onCounterUpdate as EventListener
+      );
+    };
+  }, []);
 
-				{showCounter && (
-					<>
-						<h1>Exemplo de Ciclo de vida</h1>
+  return (
+    <div className={styles.container}>
+      <div>
+        <button type="button" onClick={handleOcultCounterClick}>
+          {showCounter ? "Ocultar contador" : "Mostrar contador"}
+        </button>
 
-						<div data-content>
-							<Counter initialCount={initialCount} />
-						</div>
-					</>
-				)}
-			</div>
-		</div>
-	);
+        {showCounter && (
+          <>
+            <h1>Exemplo de Ciclo de vida</h1>
+            <div data-content>
+              <Counter
+                initialCount={initialCount}
+                onCounterComplete={handleCounterComplete}
+              />
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
 }
 
-export const getServerSideProps: GetServerSideProps<CicloDeVidaProps> = async () => {
-	return {
-		props: {
-			initialCount: 0,
-		},
-	};
+export const getServerSideProps: GetServerSideProps<
+  CicloDeVidaProps
+> = async () => {
+  return {
+    props: {
+      initialCount: 0,
+    },
+  };
 };
